@@ -20,6 +20,7 @@ package arm64
 import (
 	"math"
 	"runtime/goos"
+	"sync/atomic"
 )
 
 // CPU instance
@@ -28,6 +29,9 @@ type CPU struct {
 	TimerMultiplier float64
 	// Timer offset in nanoseconds
 	TimerOffset int64
+
+	// idle time accumulator
+	idleTicks atomic.Int64
 }
 
 // defined in arm64.s
