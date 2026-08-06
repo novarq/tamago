@@ -31,6 +31,7 @@ import (
 	"github.com/usbarmory/tamago/soc/microchip/otpc"
 	"github.com/usbarmory/tamago/soc/microchip/temp"
 	"github.com/usbarmory/tamago/soc/microchip/trng"
+	"github.com/usbarmory/tamago/soc/microchip/twi"
 	"github.com/usbarmory/tamago/soc/microchip/wdt"
 )
 
@@ -81,10 +82,11 @@ const (
 	EACL_BASE = 0xe22c0000
 
 	// Serial ports
-	FLEXCOM0_BASE = 0xe0040000
-	FLEXCOM1_BASE = 0xe0044000
-	FLEXCOM2_BASE = 0xe0060000
-	FLEXCOM3_BASE = 0xe0064000
+	FLEXCOM0_BASE    = 0xe0040000
+	FLEXCOM1_BASE    = 0xe0044000
+	FLEXCOM2_BASE    = 0xe0060000
+	FLEXCOM3_BASE    = 0xe0064000
+	FLEXCOM3_GCK_CFG = CPU_BASE + 0xd8
 
 	// General Configuration Block
 	GCB_BASE = 0xe2010000
@@ -223,6 +225,11 @@ var (
 	// True Random Number Generator
 	TRNG = &trng.TRNG{
 		Base: TRNG_BASE,
+	}
+
+	// FLEXCOM3 Two-wire Interface controller
+	TWI3 = &twi.TWI{
+		Base: FLEXCOM3_BASE,
 	}
 
 	// Watchdog Timer
