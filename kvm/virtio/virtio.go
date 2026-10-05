@@ -15,12 +15,10 @@
 // https://github.com/usbarmory/tamago.
 package virtio
 
-import (
-	"github.com/usbarmory/tamago/bits"
-)
-
 // Reserved Feature bits
 const (
+	Version1         = 32
+	AccessPlatform   = 33
 	Packed           = 34
 	NotificationData = 38
 )
@@ -41,8 +39,8 @@ const (
 
 	// bits 0 to 23, and 50 to 63
 	deviceSpecificFeatureMask = 0xfffc000000ffffff
-	// bits 24 to 49
-	deviceReservedFeatureMask = 0x0003ffffff000000
+	// implemented reserved features
+	transportFeatureMask = 1<<Version1 | 1<<AccessPlatform
 )
 
 // VirtIO represents a VirtIO device.
@@ -83,17 +81,9 @@ type VirtIO interface {
 }
 
 func negotiate(deviceFeatures, driverFeatures uint64) (features uint64) {
-	features = deviceFeatures
-
-	// clear unsupported features
-	bits.Clear64(&features, Packed)
-	bits.Clear64(&features, NotificationData)
-
-	// keep all remaining reserved features, clear device type ones
-	features &= deviceReservedFeatureMask
-
-	// apply device type features from the driver
-	features &= driverFeatures
+	// implemented transport features and driver requested device features
+	supported := transportFeatureMask | (driverFeatures & deviceSpecificFeatureMask)
+	features = deviceFeatures & supported
 
 	return
 }
