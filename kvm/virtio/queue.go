@@ -11,6 +11,7 @@ package virtio
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -330,10 +331,21 @@ func (d *VirtualQueue) Pop(buf []byte) (n int, err error) {
 	return
 }
 
-// Push supplies a single available buffer to the virtual queue.
+// Push supplies a single available buffer to the virtual queue, it returns an
+// error while the device still holds every buffer.
 func (d *VirtualQueue) Push(buf []byte) (err error) {
 	d.Lock()
 	defer d.Unlock()
+
+	// reclaim buffers used by the device, in any order
+	for used := d.Used.Index(); d.Used.last != used; d.Used.last++ {
+		ring := d.Used.Ring(d.Used.last % d.size)
+		d.Available.SetRingIndex(d.Used.last%d.size, uint16(ring.Index))
+	}
+
+	if d.Available.index-d.Used.last == d.size {
+		return errors.New("queue full")
+	}
 
 	index := d.Available.Ring(d.Available.index % d.size)
 
