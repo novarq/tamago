@@ -331,11 +331,15 @@ func (d *VirtualQueue) Pop(buf []byte) (n int, err error) {
 }
 
 // Push supplies a single available buffer to the virtual queue.
-func (d *VirtualQueue) Push(buf []byte) {
+func (d *VirtualQueue) Push(buf []byte) (err error) {
 	d.Lock()
 	defer d.Unlock()
 
 	index := d.Available.Ring(d.Available.index % d.size)
+
+	if len(buf) > len(d.Descriptors[index].buf) {
+		return fmt.Errorf("buffer too large (%d > %d)", len(buf), len(d.Descriptors[index].buf))
+	}
 
 	// update Descriptor length
 	off := 8 + index*16
@@ -345,4 +349,6 @@ func (d *VirtualQueue) Push(buf []byte) {
 	d.Available.SetRingIndex(d.Available.index%d.size, index)
 
 	d.Available.SetIndex(d.Available.index + 1)
+
+	return
 }
