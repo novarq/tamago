@@ -124,7 +124,7 @@ func (d *Available) SetIndex(index uint16) {
 
 // Ring returns a ring buffer at the given position.
 func (d *Available) Ring(n uint16) uint16 {
-	off := 4 + n*2
+	off := 4 + int(n)*2
 	d.ring[n] = binary.LittleEndian.Uint16(d.buf[off:])
 
 	return d.ring[n]
@@ -132,7 +132,7 @@ func (d *Available) Ring(n uint16) uint16 {
 
 // SetRingIndex updates the index value of a ring buffer.
 func (d *Available) SetRingIndex(n uint16, index uint16) {
-	off := 4 + n*2
+	off := 4 + int(n)*2
 	binary.LittleEndian.PutUint16(d.buf[off:], index)
 
 	d.ring[n] = index
@@ -193,7 +193,7 @@ func (d *Used) Index() uint16 {
 
 // Ring returns a ring buffer at the given position.
 func (d *Used) Ring(n uint16) Ring {
-	off := 4 + n*8
+	off := 4 + int(n)*8
 	binary.Decode(d.buf[off:], binary.LittleEndian, d.ring[n])
 
 	return *d.ring[n]
@@ -354,7 +354,7 @@ func (d *VirtualQueue) Push(buf []byte) (err error) {
 	}
 
 	// update Descriptor length
-	off := 8 + index*16
+	off := 8 + int(index)*16
 	binary.LittleEndian.PutUint32(d.buf[off:], uint32(len(buf)))
 
 	d.Descriptors[index].Write(buf)
