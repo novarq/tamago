@@ -12,7 +12,6 @@ import (
 	"errors"
 
 	"github.com/usbarmory/tamago/bits"
-	"github.com/usbarmory/tamago/dma"
 	"github.com/usbarmory/tamago/internal/reg"
 )
 
@@ -47,9 +46,6 @@ type MMIO struct {
 	Base uint32
 
 	features uint64
-
-	// DMA buffer
-	config []byte
 }
 
 func (io *MMIO) negotiate(driverFeatures uint64) (err error) {
@@ -87,20 +83,19 @@ func (io *MMIO) Init(features uint64) (err error) {
 
 // Config returns the device configuration layout.
 func (io *MMIO) Config(size int) (config []byte) {
-	if io.config == nil {
-		r, err := dma.NewRegion(uint(io.Base+Config), size, false)
+	config = make([]byte, size)
 
-		if err != nil {
-			return
+	for {
+		generation := io.ConfigVersion()
+
+		for i := range size {
+			config[i] = reg.Read8(io.Base + Config + uint32(i))
 		}
 
-		_, io.config = r.Reserve(size, 0)
+		if generation == io.ConfigVersion() {
+			return
+		}
 	}
-
-	config = make([]byte, size)
-	copy(config, io.config)
-
-	return
 }
 
 // DeviceID returns the VirtIO subsystem device ID
